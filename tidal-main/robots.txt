@@ -3,7 +3,7 @@ Allow: /
 Disallow: /api/
 Disallow: /health
 
-Sitemap: https://tidalsoftware.ai/sitemap.xml
+Sitemap: https://tidal.supply/sitemap.xml
 
 # Crawl-delay for polite bots
 Crawl-delay: 10
