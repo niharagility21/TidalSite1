@@ -1,0 +1,43 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [backup-vps-may25]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          command_timeout: 10m
+          script: |
+            set -e
+            cd /root/TidalSite
+
+            echo "=== Saving rollback point ==="
+            PREV=$(git rev-parse HEAD)
+
+            echo "=== Pulling latest ==="
+            git stash || true
+            git pull origin backup-vps-may25
+            NEW=$(git rev-parse HEAD)
+
+            if [ "$PREV" = "$NEW" ]; then
+              echo "No new commits, skipping restart."
+              exit 0
+            fi
+
+            echo "=== Restarting PM2 ==="
+            pm2 restart tidal --update-env
+            pm2 save
+
+            echo "=== Done: $PREV → $NEW ==="
+            pm2 list
